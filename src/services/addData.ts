@@ -1,6 +1,8 @@
-import { openDB } from './indexedDb'
+import { openDB } from './indexedDB'
 
 const db = await openDB()
+
+console.log(db)
 
 const requestleCallback = (request: any) => {
     return new Promise((resolve, reject) => {

@@ -18,13 +18,8 @@
         <form class="login-form" @submit.prevent="onSubmit">
           <label class="field">
             <span class="field-label">账号</span>
-            <input
-              v-model="username"
-              type="text"
-              placeholder="请输入账号 ID"
-              autocomplete="username"
-              @blur="onUsernameBlur"
-            />
+            <input v-model="username" type="text" placeholder="请输入账号 ID" autocomplete="username"
+              @blur="onUsernameBlur" />
           </label>
 
           <label class="field">
@@ -72,6 +67,7 @@ const rememberMe = ref(true)
 const avatar = ref('')
 
 onMounted(() => {
+  // 暂时先写死一个用户
   put('user_account', {
     id: '000',
     username: 'Omaxinge',
@@ -79,6 +75,30 @@ onMounted(() => {
     avatar: '/assets/icon/jiedeng.jpg',
     create_time: new Date().toISOString(),
     update_time: new Date().toISOString(),
+  })
+
+  // 暂时先写死一个菜单
+  put('user_menu_list', {
+    menu_id: 'menu_1',
+    menu_name: '控制台页面',
+    menu_path: '/dashboard',
+    children: [],
+    menu_icon: 'home',
+    menu_order: 1,
+    menu_status: 1,
+    menu_create_time: new Date().toISOString(),
+    menu_update_time: new Date().toISOString(),
+  })
+  put('user_menu_list', {
+    menu_id: 'menu_2',
+    menu_name: '网址收藏',
+    menu_path: '/page-compilations',
+    menu_icon: 'pageCompilations',
+    children: [],
+    menu_order: 1,
+    menu_status: 1,
+    menu_create_time: new Date().toISOString(),
+    menu_update_time: new Date().toISOString(),
   })
 })
 

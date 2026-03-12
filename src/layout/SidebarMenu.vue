@@ -5,28 +5,42 @@
       <span class="sidebar-logo-text">Storage Garden</span>
     </div>
 
-    <nav class="sidebar-menu">
-      <button class="menu-item is-active">
-        <span class="menu-icon">📁</span>
-        <span class="menu-text">文件总览</span>
-      </button>
-      <button class="menu-item">
-        <span class="menu-icon">⭐</span>
-        <span class="menu-text">收藏夹</span>
-      </button>
-      <button class="menu-item">
-        <span class="menu-icon">🕓</span>
-        <span class="menu-text">最近访问</span>
-      </button>
-      <button class="menu-item">
-        <span class="menu-icon">⚙️</span>
-        <span class="menu-text">设置</span>
-      </button>
-    </nav>
+    <n-menu :value="activeKey" key-field="menu_path" :options="menuList" :render-label="renderMenuLabel" />
   </aside>
 </template>
 
-<script setup lang="ts"></script>
+<script setup lang="ts">
+
+import { getAll } from '@/services/addData'
+import { computed, onMounted, ref, h } from 'vue'
+import type { MenuOption } from 'naive-ui'
+import { useRoute, useRouter } from 'vue-router'
+
+const menuList = ref<any[]>([])
+const router = useRouter()
+const route = useRoute()
+
+// 当前路由 path 作为菜单选中项（n-menu 用 value 和 option.key 匹配，只高亮一项）
+const activeKey = computed(() => route.path)
+
+onMounted(async () => {
+  menuList.value = await getAll('user_menu_list') as any[]
+})
+
+// 返回渲染名称
+const renderMenuLabel = (options: MenuOption) => {
+  console.log(options)
+  if ('menu_path' in options) {
+    return h(
+      'div',
+      { onClick: () => router.push(options.menu_path as string), style: { color: '#c4cdef' } },
+      options.menu_name as string
+    )
+  }
+  return options.menu_name as string
+}
+
+</script>
 
 <style scoped>
 .sidebar {
@@ -107,4 +121,3 @@
   }
 }
 </style>
-

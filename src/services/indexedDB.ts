@@ -35,6 +35,11 @@ export function openDB() {
             if (!db.objectStoreNames.contains('user_account')) {
                 db.createObjectStore('user_account', { keyPath: 'id' })
             }
+
+            // 有无菜单表 没有的话就创建
+            if (!db.objectStoreNames.contains('user_menu_list')) {
+                db.createObjectStore('user_menu_list', { keyPath: 'menu_id' })
+            }
         }
     })
 
