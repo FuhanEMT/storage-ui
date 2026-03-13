@@ -13,6 +13,7 @@
     "mongo:dev": "tsx mongodb/server.ts"
   },
   "dependencies": {
+    "crypto-js": "^4.2.0",
     "express": "^4.21.2",
     "mongoose": "^8.9.5",
     "naive-ui": "^2.43.2",
