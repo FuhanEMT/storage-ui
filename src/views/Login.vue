@@ -3,7 +3,16 @@
     <div class="login-card">
       <div class="login-illustration">
         <div v-if="!avatar" class="anime-hero placeholder"></div>
-        <img v-else class="anime-hero" :src="avatar" alt="login illustration" />
+        <div v-else class="avatar-wrapper">
+          <img class="anime-hero" :src="avatar" alt="login illustration" />
+          <div class="particle-layer">
+            <span
+              v-for="n in 24"
+              :key="n"
+              class="particle"
+            />
+          </div>
+        </div>
       </div>
 
       <div class="login-content">
@@ -12,8 +21,8 @@
           <span class="logo-text">Storage Garden</span>
         </div>
 
-        <h1 class="login-title">欢迎回来，指挥官</h1>
-        <p class="login-subtitle">这里是无何有境，寓意新的世界</p>
+        <h1 class="login-title">欢迎回来，{{nickName || '无名氏'}}</h1>
+        <p class="login-subtitle">这里是无何有境，<a href="https://baike.baidu.com/item/%E6%97%A0%E4%BD%95%E6%9C%89%E5%A2%83/4572232" target="_blank">为何是无何有境？</a></p>
 
         <form class="login-form" @submit.prevent="onSubmit">
           <label class="field">
@@ -58,6 +67,9 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import put, { getAll } from '@/services/addData'
+import request from '@/services/request'
+// @ts-ignore
+import CryptoJS from 'crypto-js';
 
 const router = useRouter()
 
@@ -65,7 +77,7 @@ const username = ref('')
 const password = ref('')
 const rememberMe = ref(true)
 const avatar = ref('')
-
+const nickName = ref('')
 onMounted(() => {
   // 暂时先写死一个用户
   put('user_account', {
@@ -102,36 +114,51 @@ onMounted(() => {
   })
 })
 
+// 单独获取头像
 async function onUsernameBlur() {
-  if (!username.value) {
-    avatar.value = ''
-    return
-  }
+  
+  if(!username.value) return
 
-  const result = (await getAll('user_account')) as any[]
-  const user = result.find((u: any) => u.username === username.value)
+  const res:any = await request.post('/admin/user/avatar',{
+    username: username.value,
+  })
 
-  avatar.value = user?.avatar ?? ''
+  avatar.value = res.avatar ?? ''
+  nickName.value = res.username ?? ''
 }
 
 async function onSubmit() {
   // 查表并校验账号密码
-  const result = (await getAll('user_account')) as any[]
+  // const result = (await getAll('user_account')) as any[]
 
-  const user = result.find((u: any) => u.username === username.value)
+  // const user = result.find((u: any) => u.username === username.value)
 
-  if (!user) {
-    console.log('账号不存在')
-    return
-  }
+  // if (!user) {
+  //   console.log('账号不存在')
+  //   return
+  // }
 
-  if (user.password !== password.value) {
-    console.log('密码错误')
-    return
-  }
+  // if (user.password !== password.value) {
+  //   console.log('密码错误')
+  //   return
+  // }
 
-  console.log('登录成功')
-  router.push('/dashboard')
+  // console.log('登录成功')
+  // router.push('/dashboard')
+  console.log(handleAESencryption(username.value, 'yuhi'))
+  const res = await request.post('/admin/user/login',{
+    username: handleAESencryption(username.value, 'yuhi'),
+    password: handleAESencryption(password.value, 'yuhi'),
+  }).then((res) => {
+    console.log(res)  
+  })
+
+  
+}
+
+// AES加密方法
+const handleAESencryption = (data:string , key = 'yuhi') => {
+  return CryptoJS.AES.encrypt(data, key).toString();
 }
 </script>
 
@@ -171,6 +198,15 @@ async function onSubmit() {
   justify-content: center;
 }
 
+.avatar-wrapper {
+  position: relative;
+  width: 260px;
+  height: 260px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .anime-hero {
   width: 260px;
   height: 260px;
@@ -195,6 +231,14 @@ async function onSubmit() {
     0 0 40px rgba(163, 202, 255, 0.35);
 }
 
+/* 只有真实头像图片缓慢自转，placeholder 不转 */
+.avatar-wrapper .anime-hero {
+  animation:
+    avatarFadeIn 260ms ease-out,
+    avatarSlowSpin 26s linear infinite;
+  transform-origin: center center;
+}
+
 @keyframes avatarFadeIn {
   from {
     opacity: 0;
@@ -205,6 +249,200 @@ async function onSubmit() {
     opacity: 1;
     transform: scale(1);
   }
+}
+
+@keyframes avatarSlowSpin {
+  from {
+    transform: scale(1) rotate(0deg);
+  }
+
+  to {
+    transform: scale(1) rotate(360deg);
+  }
+}
+
+.particle-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  filter: blur(0.5px);
+}
+
+.particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.9);
+  opacity: 0;
+  animation: particle-attract 4.2s linear infinite;
+  top: 50%;
+  left: 50%;
+}
+
+@keyframes particle-attract {
+  0% {
+    transform: translate(calc(var(--sx) * 1.8), calc(var(--sy) * 1.8)) scale(0.4);
+    opacity: 0;
+  }
+
+  20% {
+    opacity: 1;
+  }
+
+  70% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(var(--sx), var(--sy)) scale(0.9);
+    opacity: 0;
+  }
+}
+
+.particle:nth-child(1) {
+  --sx: -110px;
+  --sy: -60px;
+  animation-delay: 0s;
+}
+
+.particle:nth-child(2) {
+  --sx: -120px;
+  --sy: 40px;
+  animation-delay: 0.4s;
+}
+
+.particle:nth-child(3) {
+  --sx: -80px;
+  --sy: 100px;
+  animation-delay: 0.8s;
+}
+
+.particle:nth-child(4) {
+  --sx: 110px;
+  --sy: -60px;
+  animation-delay: 1.2s;
+}
+
+.particle:nth-child(5) {
+  --sx: 120px;
+  --sy: 40px;
+  animation-delay: 1.6s;
+}
+
+.particle:nth-child(6) {
+  --sx: 80px;
+  --sy: 100px;
+  animation-delay: 2s;
+}
+
+.particle:nth-child(7) {
+  --sx: 0px;
+  --sy: -120px;
+  animation-delay: 2.4s;
+}
+
+.particle:nth-child(8) {
+  --sx: -60px;
+  --sy: -120px;
+  animation-delay: 2.8s;
+}
+
+.particle:nth-child(9) {
+  --sx: 60px;
+  --sy: -120px;
+  animation-delay: 3.2s;
+}
+
+.particle:nth-child(10) {
+  --sx: 0px;
+  --sy: 120px;
+  animation-delay: 3.6s;
+}
+
+.particle:nth-child(11) {
+  --sx: -90px;
+  --sy: 115px;
+  animation-delay: 4s;
+}
+
+.particle:nth-child(12) {
+  --sx: 90px;
+  --sy: 115px;
+  animation-delay: 4.4s;
+}
+
+.particle:nth-child(13) {
+  --sx: -130px;
+  --sy: -10px;
+  animation-delay: 4.8s;
+}
+
+.particle:nth-child(14) {
+  --sx: 130px;
+  --sy: 0px;
+  animation-delay: 5.2s;
+}
+
+.particle:nth-child(15) {
+  --sx: -40px;
+  --sy: -110px;
+  animation-delay: 5.6s;
+}
+
+.particle:nth-child(16) {
+  --sx: 40px;
+  --sy: -110px;
+  animation-delay: 6s;
+}
+
+.particle:nth-child(17) {
+  --sx: -110px;
+  --sy: -10px;
+  animation-delay: 6.4s;
+}
+
+.particle:nth-child(18) {
+  --sx: 110px;
+  --sy: 10px;
+  animation-delay: 6.8s;
+}
+
+.particle:nth-child(19) {
+  --sx: -70px;
+  --sy: 60px;
+  animation-delay: 7.2s;
+}
+
+.particle:nth-child(20) {
+  --sx: 70px;
+  --sy: 60px;
+  animation-delay: 7.6s;
+}
+
+.particle:nth-child(21) {
+  --sx: -30px;
+  --sy: 115px;
+  animation-delay: 8s;
+}
+
+.particle:nth-child(22) {
+  --sx: 30px;
+  --sy: 115px;
+  animation-delay: 8.4s;
+}
+
+.particle:nth-child(23) {
+  --sx: -120px;
+  --sy: -90px;
+  animation-delay: 8.8s;
+}
+
+.particle:nth-child(24) {
+  --sx: 120px;
+  --sy: 90px;
+  animation-delay: 9.2s;
 }
 
 .login-content {}
