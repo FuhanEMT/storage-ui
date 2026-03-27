@@ -1,6 +1,9 @@
 <template>
   <div class="login-page">
+    <div v-if="loginPageBgUrl" class="login-page-bg" :style="loginPageBgStyle" />
     <div class="login-card">
+      <div v-if="loginCardBgUrl" class="login-card-bg" :style="loginCardBgStyle" />
+      <div class="login-card-inner">
       <div class="login-illustration">
         <div v-if="!avatar" class="anime-hero placeholder"></div>
         <div v-else class="avatar-wrapper">
@@ -22,7 +25,7 @@
         </div>
 
         <h1 class="login-title">欢迎回来，{{nickName || '无名氏'}}</h1>
-        <p class="login-subtitle">这里是无何有境，<a href="https://baike.baidu.com/item/%E6%97%A0%E4%BD%95%E6%9C%89%E5%A2%83/4572232" target="_blank">为何是无何有境？</a></p>
+        <p class="login-subtitle">这里是无何有境，<a class="subtitle-link" href="https://baike.baidu.com/item/%E6%97%A0%E4%BD%95%E6%9C%89%E5%A2%83/4572232" target="_blank" rel="noopener noreferrer">为何是无何有境？</a></p>
 
         <form class="login-form" @submit.prevent="onSubmit">
           <label class="field">
@@ -53,6 +56,7 @@
           <button type="button" class="link-button">申请新账号</button>
         </p> -->
       </div>
+      </div>
     </div>
 
     <div class="login-bg-decor">
@@ -64,13 +68,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import put, { getAll } from '@/services/addData'
+import { useUserStore } from '@/stores/user'
 import request from '@/services/request'
 // @ts-ignore
 import CryptoJS from 'crypto-js';
-
+import { msg } from '@/plugins/message'
 const router = useRouter()
 
 const username = ref('')
@@ -78,58 +82,46 @@ const password = ref('')
 const rememberMe = ref(true)
 const avatar = ref('')
 const nickName = ref('')
-onMounted(() => {
-  // 暂时先写死一个用户
-  put('user_account', {
-    id: '000',
-    username: 'Omaxinge',
-    password: 'Lxk4865119.',
-    avatar: '/assets/icon/jiedeng.jpg',
-    create_time: new Date().toISOString(),
-    update_time: new Date().toISOString(),
-  })
 
-  // 暂时先写死一个菜单
-  put('user_menu_list', {
-    menu_id: 'menu_1',
-    menu_name: '控制台页面',
-    menu_path: '/dashboard',
-    children: [],
-    menu_icon: 'home',
-    menu_order: 1,
-    menu_status: 1,
-    menu_create_time: new Date().toISOString(),
-    menu_update_time: new Date().toISOString(),
-  })
-  put('user_menu_list', {
-    menu_id: 'menu_2',
-    menu_name: '网址收藏',
-    menu_path: '/page-compilations',
-    menu_icon: 'pageCompilations',
-    children: [],
-    menu_order: 1,
-    menu_status: 1,
-    menu_create_time: new Date().toISOString(),
-    menu_update_time: new Date().toISOString(),
-  })
-})
+const apiBase = import.meta.env.VITE_API_BASE_URL || '/api'
+const loginCardBgUrl = ref('')
+const loginPageBgUrl = ref('')
+const toBgStyle = (val: string) => {
+  if (!val) return {}
+  const url = val.startsWith('data:') || val.startsWith('http') ? val : apiBase + val
+  return { backgroundImage: `url(${url})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+}
+const loginCardBgStyle = computed(() => toBgStyle(loginCardBgUrl.value))
+const loginPageBgStyle = computed(() => toBgStyle(loginPageBgUrl.value))
 
-// 单独获取头像
+// 输入账号失焦时：拉取头像 + 拉取该账号的 system，若有则换登录页背景与卡片背景
 async function onUsernameBlur() {
-  
-  if(!username.value) return
-
-  const res:any = await request.post('/admin/user/avatar',{
-    username: username.value,
-  })
-
-  avatar.value = res.avatar ?? ''
-  nickName.value = res.username ?? ''
+  if (!username.value) {
+    loginCardBgUrl.value = ''
+    loginPageBgUrl.value = ''
+    return
+  }
+  try {
+    const [avatarRes, systemRes] = await Promise.all([
+      request.post('/admin/user/avatar', { username: username.value }),
+      request.post('/admin/user/system-by-account', { username: username.value }),
+    ]) as [any, any]
+    avatar.value = avatarRes?.data?.avatar ?? ''
+    nickName.value = avatarRes?.data?.username ?? ''
+    const sys = systemRes?.data
+    loginCardBgUrl.value = sys?.user_login_card_bg ? String(sys.user_login_card_bg) : ''
+    loginPageBgUrl.value = sys?.user_login_bg ? String(sys.user_login_bg) : ''
+  } catch {
+    username.value = ''
+    avatar.value = ''
+    nickName.value = ''
+    loginCardBgUrl.value = ''
+    loginPageBgUrl.value = ''
+  }
 }
 
 async function onSubmit() {
   // 查表并校验账号密码
-  // const result = (await getAll('user_account')) as any[]
 
   // const user = result.find((u: any) => u.username === username.value)
 
@@ -143,15 +135,19 @@ async function onSubmit() {
   //   return
   // }
 
-  // console.log('登录成功')
-  // router.push('/dashboard')
-  console.log(handleAESencryption(username.value, 'yuhi'))
-  const res = await request.post('/admin/user/login',{
-    username: handleAESencryption(username.value, 'yuhi'),
-    password: handleAESencryption(password.value, 'yuhi'),
-  }).then((res) => {
-    console.log(res)  
-  })
+  try {
+    const res = (await request.post('/admin/user/login', {
+      username: handleAESencryption(username.value, 'yuhi'),
+      password: handleAESencryption(password.value, 'yuhi'),
+    })) as { data?: Record<string, unknown>; message?: string }
+    const data = res?.data ?? res
+    msg.success(res?.message ?? '登录成功')
+    const userStore = useUserStore()
+    userStore.setUserInfo(typeof data === 'object' && data !== null ? data : {})
+    router.push('/dashboard')
+  } catch {
+    msg.error('登录失败')
+  }
 
   
 }
@@ -176,19 +172,70 @@ const handleAESencryption = (data:string , key = 'yuhi') => {
   padding: 24px;
 }
 
+/* 登录页整页背景图 user_login_bg：半透明 + 淡入 */
+.login-page-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0.35;
+  pointer-events: none;
+  z-index: 0;
+  animation: loginPageBgFadeIn 0.6s ease-out;
+}
+@keyframes loginPageBgFadeIn {
+  from { opacity: 0; }
+  to { opacity: 0.35; }
+}
+.login-page > .login-card,
+.login-page > .login-bg-decor {
+  position: relative;
+  z-index: 1;
+}
+
 .login-card {
   position: relative;
   display: flex;
-  gap: 32px;
   max-width: 960px;
   width: 100%;
-  background: rgba(16, 18, 34, 0.9);
+  background: rgba(16, 18, 34, 0.92);
   border-radius: 24px;
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.7);
   border: 1px solid rgba(123, 167, 255, 0.25);
   backdrop-filter: blur(22px);
   padding: 32px 40px;
   z-index: 1;
+  overflow: hidden;
+}
+
+/* 背景图层：半透明 + 淡入动画，不挡文字 */
+.login-card-bg {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-size: cover;
+  background-position: center;
+  opacity: 0.32;
+  pointer-events: none;
+  z-index: 0;
+  animation: loginCardBgFadeIn 0.5s ease-out;
+}
+
+@keyframes loginCardBgFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 0.32;
+  }
+}
+
+.login-card-inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  gap: 32px;
+  width: 100%;
 }
 
 .login-illustration {
@@ -486,6 +533,22 @@ const handleAESencryption = (data:string , key = 'yuhi') => {
   margin: 0 0 24px;
   font-size: 14px;
   color: #a7b4d8;
+}
+
+.subtitle-link {
+  color: #b8d4ff;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 2px 6px;
+  margin: 0 -6px;
+  border-radius: 6px;
+  transition: color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.subtitle-link:hover {
+  color: #e0ebff;
+  background: rgba(155, 181, 255, 0.12);
+  box-shadow: 0 0 0 1px rgba(155, 181, 255, 0.2);
 }
 
 .login-form {

@@ -14,8 +14,21 @@
 </template>
 
 <script setup lang="ts">
+import { onMounted } from 'vue'
 import MainLayout from '@/layout/MainLayout.vue'
 import SidebarMenu from '@/layout/SidebarMenu.vue'
 import HeaderBar from '@/layout/HeaderBar.vue'
+import request from '@/services/request'
+import { useSystemStore } from '@/stores/system'
+
+const systemStore = useSystemStore()
+onMounted(async () => {
+  try {
+    const res = await request.get('/admin/user/system')
+    systemStore.setSystem(res?.data ?? null)
+  } catch {
+    systemStore.setSystem(null)
+  }
+})
 </script>
 

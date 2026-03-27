@@ -1,7 +1,13 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import MessageGlobal from '@/plugins/MessageGlobal.vue'
+import GlobalImageCropper from '@/components/GlobalImageCropper.vue'
+</script>
 
 <template>
-  <router-view />
+  <n-message-provider>
+    <MessageGlobal />
+    <GlobalImageCropper />
+  </n-message-provider>
 </template>
 
 <style>

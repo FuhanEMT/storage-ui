@@ -10,26 +10,30 @@
 </template>
 
 <script setup lang="ts">
-
-import { getAll } from '@/services/addData'
-import { computed, onMounted, ref, h } from 'vue'
+import { computed, h, onMounted, ref } from 'vue'
 import type { MenuOption } from 'naive-ui'
 import { useRoute, useRouter } from 'vue-router'
+import { useUserStore } from '@/stores/user'
+import request from '@/services/request'
 
-const menuList = ref<any[]>([])
+const menuList = ref<MenuOption[]>([])
 const router = useRouter()
 const route = useRoute()
+const userRole = computed(() => (useUserStore().userInfo?.role as string) ?? '')
 
-// 当前路由 path 作为菜单选中项（n-menu 用 value 和 option.key 匹配，只高亮一项）
 const activeKey = computed(() => route.path)
 
 onMounted(async () => {
-  menuList.value = await getAll('user_menu_list') as any[]
+  const res = await request.get('/admin/menu/list')
+  const list = Array.isArray(res?.data) ? res.data : []
+  const role = userRole.value
+  menuList.value = list
+    .filter((item: any) => !item.permission?.length || item.permission.includes(role))
+    .sort((a: any, b: any) => (a.menu_order ?? 0) - (b.menu_order ?? 0))
 })
 
 // 返回渲染名称
 const renderMenuLabel = (options: MenuOption) => {
-  console.log(options)
   if ('menu_path' in options) {
     return h(
       'div',

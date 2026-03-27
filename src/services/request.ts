@@ -1,4 +1,6 @@
 import axios, { AxiosError, type AxiosResponse } from 'axios'
+import { useRouter } from 'vue-router'
+import { useUserStore } from '@/stores/user'
 
 const instance = axios.create({
   // 开发环境通过 Vite 代理，将 /api 转发到 http://localhost:4000
@@ -10,15 +12,11 @@ const instance = axios.create({
 instance.interceptors.request.use(
   (config: any) => {
     const token =
-      window.localStorage.getItem('token') || window.sessionStorage.getItem('token')
-
-    if (token) {
-      config.headers = {
-        ...(config.headers || {}),
-        Authorization: `Bearer ${token}`,
-      }
+      JSON.parse(localStorage.getItem('user-info') || '{}').token || JSON.parse(sessionStorage.getItem('user-info') || '{}').token
+    config.headers = {
+      ...(config.headers || {}),
+      Authorization: `yuhi ${token}`,
     }
-
     return config
   },
   (error: AxiosError) => {
@@ -29,12 +27,15 @@ instance.interceptors.request.use(
 // 响应拦截器：统一把返回值收敛成「成功返回 data，失败直接抛错」
 instance.interceptors.response.use(
   (response: AxiosResponse | any) => {
-    // 这里直接返回后端的 data 字段
-    if(response.code == 200) return 
-    return response.data.data
+    return response.data
   },
   (error: AxiosError) => {
-    // 任何非 2xx 状态 / 网络异常，统一抛出，让上层中断流程
+    if (error.response?.status === 401) {
+      localStorage.removeItem('user-info')
+      sessionStorage.removeItem('user-info')
+      useUserStore().clearUserInfo()
+      useRouter().push('/login')
+    }
     return Promise.reject(error)
   },
 )
