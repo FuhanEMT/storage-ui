@@ -17,13 +17,18 @@
     "crypto-js": "^4.2.0",
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.3",
-    "multer": "^1.4.5-lts.1",
     "mongoose": "^8.9.5",
+    "multer": "^1.4.5-lts.1",
     "naive-ui": "^2.43.2",
     "pinia": "^3.0.4",
+    "pixi-live2d-display": "^0.4.0",
+    "pixi.js": "~6.5.10",
     "vue": "^3.5.29",
     "vue-advanced-cropper": "^2.8.9",
-    "vue-router": "^5.0.3"
+    "vue-router": "^5.0.3",
+    "vxe-pc-ui": "4.13.19",
+    "vxe-table": "4.18.10",
+    "xe-utils": "4.0.4"
   },
   "devDependencies": {
     "@tsconfig/node24": "^24.0.4",

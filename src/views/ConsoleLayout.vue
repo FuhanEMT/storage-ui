@@ -6,6 +6,7 @@
 
     <template #header>
       <HeaderBar />
+      <RouteTabs />
     </template>
 
     <!-- 右侧内容由子路由决定，只替换这一块 -->
@@ -18,6 +19,7 @@ import { onMounted } from 'vue'
 import MainLayout from '@/layout/MainLayout.vue'
 import SidebarMenu from '@/layout/SidebarMenu.vue'
 import HeaderBar from '@/layout/HeaderBar.vue'
+import RouteTabs from '@/layout/RouteTabs.vue'
 import request from '@/services/request'
 import { useSystemStore } from '@/stores/system'
 

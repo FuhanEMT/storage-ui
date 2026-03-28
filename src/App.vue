@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import MessageGlobal from '@/plugins/MessageGlobal.vue'
 import GlobalImageCropper from '@/components/GlobalImageCropper.vue'
+import GlobalFloatingDock from '@/components/GlobalFloatingDock.vue'
 </script>
 
 <template>
   <n-message-provider>
     <MessageGlobal />
     <GlobalImageCropper />
+    <GlobalFloatingDock></GlobalFloatingDock>
   </n-message-provider>
 </template>
 

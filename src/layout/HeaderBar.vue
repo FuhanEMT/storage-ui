@@ -40,7 +40,7 @@ const avatarOptions = [
 
 function onAvatarSelect(key: string) {
   if (key === 'profile') {
-    router.push('/profile')
+    router.push('/personal/profile')
   } else if (key === 'logout') {
     userStore.clearUserInfo()
     msg.info('已退出登录')

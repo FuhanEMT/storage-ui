@@ -8,6 +8,8 @@
   </head>
   <body>
     <div id="app"></div>
+    <!-- Cubism 4 Core：必须在加载 Vue 模块之前执行，否则 pixi-live2d-display/cubism4 会报缺少运行时 -->
+    <script src="/live2d/CubismSdkForWeb-5-r.4/Core/live2dcubismcore.min.js"></script>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

@@ -19,19 +19,51 @@ const router = createRouter({
           redirect: '/dashboard',
         },
         {
-          path: '/dashboard',
+          path: 'dashboard',
           name: 'Dashboard',
           component: () => import('@/views/Dashboard.vue'),
         },
+        // 个人资料
         {
-          path: '/page-compilations',
-          name: 'PageCompilations',
-          component: () => import('@/views/page-compilations/PageCompilations.vue'),
+          path: 'personal',
+          children: [
+            {
+              path: '',
+              redirect: '/personal/page-compilations',
+            },
+            {
+              path: 'page-compilations',
+              name: 'PageCompilations',
+              component: () => import('@/views/personal/page-compilations/PageCompilations.vue'),
+            },
+            {
+              path: 'profile',
+              name: 'profile',
+              component: () => import('@/views/Profile.vue'),
+            },
+          ],
         },
+        // 在线模块
         {
-          path: '/profile',
-          name: 'Profile',
-          component: () => import('@/views/Profile.vue'),
+          path: 'online',
+          children: [
+            {
+              path: 'online-websites',
+              name: 'OnlineWebsites',
+              component: () => import('@/views/online/online-websites/OnlineWebsites.vue'),
+            },
+          ],
+        },
+        // 模型 / 模块设置
+        {
+          path: 'model',
+          children: [
+            {
+              path: 'setting',
+              name: 'ModelSetting',
+              component: () => import('@/views/model/setting/ModelSetting.vue'),
+            },
+          ],
         },
       ],
     },
