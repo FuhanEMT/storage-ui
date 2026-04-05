@@ -25,6 +25,11 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
       },
+      // 模型上传文件由 API 的 express.static('/uploads') 提供，开发环境经此代理才能用 /uploads/... 访问
+      '/uploads': {
+        target: 'http://localhost:4000',
+        changeOrigin: true,
+      },
     },
   },
 })

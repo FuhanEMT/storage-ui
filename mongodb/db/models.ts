@@ -25,11 +25,18 @@ const bookmarkDataSchema = new mongoose.Schema(
   { collection: 'bookmark_data', strict: false },
 )
 
+/** 控制台「模型设置」中用户保存的 Live2D 等模型条目 */
+const userModelSchema = new mongoose.Schema(
+  { time: { type: Date, required: true } },
+  { collection: 'user_model', strict: false },
+)
+
 export const UserDataModel = mongoose.model('AdminUserData', userDataSchema)
 export const UserRoleModel = mongoose.model('AdminUserRole', userRoleSchema)
 export const MenuModel = mongoose.model('Menu', menuSchema)
 export const UserSystemModel = mongoose.model('UserSystem', userSystemSchema)
 export const BookmarkDataModel = mongoose.model('BookmarkData', bookmarkDataSchema)
+export const UserModelDoc = mongoose.model('UserModelDoc', userModelSchema)
 
 export function ensureSubItemId(item: Record<string, unknown>): Record<string, unknown> {
   const next = { ...item }

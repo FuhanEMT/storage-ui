@@ -10,8 +10,8 @@ import {
   NForm,
   NFormItem,
   NInput,
-  NRadio,
-  NRadioGroup,
+  NSelect,
+  NSwitch,
 } from 'naive-ui'
 import VxeUI from 'vxe-pc-ui'
 import VxeUITable from 'vxe-table'
@@ -38,8 +38,8 @@ const naive = create({
     NForm,
     NFormItem,
     NInput,
-    NRadio,
-    NRadioGroup,
+    NSelect,
+    NSwitch,
   ],
 })
 
